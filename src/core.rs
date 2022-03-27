@@ -4,12 +4,14 @@ use crate::*;
 impl Contract {
 
     #[payable]
-    pub fn create_project(&mut self, project_id: ProjectId, mut metadata: ProjectMetadata, project_owner_id: AccountId) {
+    pub fn create_project(&mut self, mut metadata: ProjectMetadata) {
         let before_storage_usage = env::storage_usage();
 
         let project = Project {
-            owner_id: project_owner_id
+            owner_id: env::predecessor_account_id() 
         };
+
+        let project_id = env::predecessor_account_id() + "_" + &env::block_index().to_string();
 
         assert!(
             self.projects_by_id.insert(&project_id, &project).is_none(),
@@ -22,8 +24,8 @@ impl Contract {
 
         // set project per owner
         self.internal_add_project_to_owner(&project_id, &project.owner_id);
-
         let project_create_log: EventLog = EventLog {
+
             version: "1.0.0".to_string(),
             event: EventLogVariant::ProjectCreate(vec![ ProjectCreateLog {
                 owner_id: project.owner_id.to_string(),
@@ -41,8 +43,6 @@ impl Contract {
     #[payable]
     pub fn donate_project(&mut self, project_id: ProjectId) {
         let amount = env::attached_deposit();
-        // let amount = deposit.clone() as u128;
-        // let before_storage_usage = env::storage_usage();
 
         let supporter_id = env::predecessor_account_id();
 
@@ -66,11 +66,12 @@ impl Contract {
             metadata.funded = Some(U128(funded));
             self.project_metadata_by_id.insert(&project_id, &metadata);
 
+            //Implement withdraw with duration
             if funded >= target {
-                // transfer 95% of donation (funded) from contract account to project owner account
-                let transfer_capital = 95 * funded / 100; 
-                let real_transfer = transfer_capital as u128;
-                Promise::new(project_owner_id).transfer(Balance::from(real_transfer));
+                env::log(b"SUCCESS: Project's target already reached");
+                // let transfer_capital = 95 * funded / 100; 
+                // let real_transfer = transfer_capital as u128;
+                // Promise::new(project_owner_id).transfer(Balance::from(real_transfer));
             }
 
             // set supporter per project
@@ -79,20 +80,23 @@ impl Contract {
         } else {
             panic!("Project doesn't exist!");
         }
-
-        // let after_storage_usage = env::storage_usage();
-        // Refund near
-        // refund_deposit(after_storage_usage - before_storage_usage);
     }
 
     pub fn vote_project(&mut self, project_id: ProjectId) {
         let voter_id = env::predecessor_account_id();
         let project = self.projects_by_id.get(&project_id);
 
-        if let Some(project) = project {
+        if project.is_some() {
             self.internal_add_voter_to_project(&voter_id, &project_id);
         } else {
             panic!("Project doesn't exist!");
         }
     }
+
+    #[payable]
+    pub fn claim(&mut self, project_id: ProjectId) {
+
+    }
+
+
 }

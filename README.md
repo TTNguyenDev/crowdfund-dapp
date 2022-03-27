@@ -1,23 +1,34 @@
-# Rust Smart Contract Template
+## Deploy contract
 
-## Getting started
+```sh
+cargo build --all --target wasm32-unknown-unknown --release
+cp target/wasm32-unknown-unknown/release/*.wasm ./res/
+near dev-deploy --wasmFile res/near_fm.wasm 
+source neardev/dev-account.env
+echo $ID
+```
 
-To get started with this template:
+## Init contract
+```
+near call $ID new '' --accountId $ID
+```
 
-1. Click the "Use this template" button to create a new repo based on this template
-2. Update line 2 of `Cargo.toml` with your project name
-3. Update line 4 of `Cargo.toml` with your project author names
-4. Set up the [prerequisites](https://github.com/near/near-sdk-rs#pre-requisites)
-5. Begin writing your smart contract in `src/lib.rs`
-6. Test the contract 
+## Create new project
+```
+near call $ID create_project '{"metadata": {"title": "Crowdfunding demo", "description":
+"Crowdfunding description", "target": "1000000000000000000000000000", "minimum_pledge":
+"1000000000000"}}' --accountId crowdfunding_creator.testnet
+```
 
-    `cargo test -- --nocapture`
+## Donate project
+```
+near call $ID donate_project '{"project_id": "$PROJ_ID"}' --accountId donate_account.testnet
+--amount 1
+```
 
-8. Build the contract
 
-    `RUSTFLAGS='-C link-arg=-s' cargo build --target wasm32-unknown-unknown --release`
-
-**Get more info at:**
-
-* [Rust Smart Contract Quick Start](https://docs.near.org/docs/develop/contracts/rust/intro)
-* [Rust SDK Book](https://www.near-sdk.io/)
+## Claim 
+```
+near call $ID claim '{"project_id": "$PROJ_ID"}' --accountId donate_account.testnet --attatchYocto
+1
+```

@@ -27,7 +27,6 @@ pub(crate) fn hash_project_id(project_id: &ProjectId) -> CryptoHash {
 }
 
 pub(crate) fn refund_deposit(storage_used: u64) {
-    // Tính lượng tiền cần nạp để cover storage
     let required_cost = env::storage_byte_cost() * Balance::from(storage_used);
     let attached_deposit = env::attached_deposit();
 

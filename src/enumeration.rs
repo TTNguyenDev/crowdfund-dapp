@@ -2,13 +2,10 @@ use crate::*;
 
 #[near_bindgen]
 impl Contract {
-
-    // lấy tổng số dự án có trong contract
     pub fn get_number_of_projects(&self) -> U128 {
         U128(self.project_metadata_by_id.len() as u128)
     }
 
-    // lấy ra thông tin một project
     pub fn get_project_info(&self, project_id: ProjectId) -> Option<JsonProject> {
         let project = self.projects_by_id.get(&project_id);
 
@@ -25,7 +22,6 @@ impl Contract {
         }
     }
 
-    // lấy danh sách supporters của một project
     pub fn get_project_supporters(&self, project_id: ProjectId) -> Vec<AccountId> {
         let supporters = self.supporters_per_project.get(&project_id);
         if let Some(supporters) = supporters {
@@ -36,7 +32,6 @@ impl Contract {
         
     }
 
-    // lấy danh sách voters của một project
     pub fn get_project_voters(&self, project_id: ProjectId) -> Vec<AccountId> {
         let voters = self.voters_per_project.get(&project_id);
         if let Some(voters) = voters {
@@ -50,7 +45,7 @@ impl Contract {
     pub fn get_project_funded(&self, project_id: ProjectId) -> Option<u128> {
         let project = self.projects_by_id.get(&project_id);
 
-        if let Some(project) = project {
+        if project.is_some() {
             let metadata = self.project_metadata_by_id.get(&project_id).unwrap();
             let funded = u128::from(metadata.funded.unwrap());
             Some(funded)
@@ -62,7 +57,7 @@ impl Contract {
     pub fn get_project_target(&self, project_id: ProjectId) -> Option<u128> {
         let project = self.projects_by_id.get(&project_id);
 
-        if let Some(project) = project {
+        if project.is_some() {
             let metadata = self.project_metadata_by_id.get(&project_id).unwrap();
 
             Some(u128::from(metadata.target))
@@ -71,7 +66,6 @@ impl Contract {
         }
     }
 
-    // lấy ra danh sách các dự án có paging
     pub fn get_projects_info(&self, from_index: Option<U128>, limit: Option<u64>) -> Vec<JsonProject> {
         let project_keys = self.project_metadata_by_id.keys_as_vector();
 
@@ -84,7 +78,6 @@ impl Contract {
         .collect()
     }
 
-    // Lấy danh sách project của một chủ dự án có account_id tương ứng (có paging)
     pub fn get_projects_by_owner(&self, account_id: AccountId, from_index: Option<U128>, limit: Option<u64>) -> Vec<JsonProject> {
         let projects = self.projects_per_owner.get(&account_id);
 
@@ -107,7 +100,7 @@ impl Contract {
     pub fn get_project_started_time(&self, project_id: ProjectId) -> Option<u64> {
         let project = self.projects_by_id.get(&project_id);
 
-        if let Some(project) = project {
+        if project.is_some() {
             let metadata = self.project_metadata_by_id.get(&project_id).unwrap();
 
             metadata.started_at
@@ -116,11 +109,10 @@ impl Contract {
         }
     }
 
-    // check if specific project was over deadline
     pub fn is_project_ended(&self, project_id: ProjectId) -> Option<bool> {
         let project = self.projects_by_id.get(&project_id);
 
-        if let Some(project) = project {
+        if project.is_some() {
             let metadata = self.project_metadata_by_id.get(&project_id).unwrap();
             let ended_time = metadata.ended_at.unwrap();
             let is_ended = ended_time < env::block_timestamp();
